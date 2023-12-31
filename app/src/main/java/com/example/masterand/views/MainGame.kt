@@ -51,7 +51,6 @@ fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
                 fontSize = 50.sp,
                 modifier = Modifier.padding(4.dp)
             )
-            GameRow(selectedColors = solution, feedbackColors = emptyRow)
             for (row in rows.value) {
                 GameRow(
                     selectedColors = row,
@@ -71,6 +70,7 @@ fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
                     },
                     onCheckClick = {
                         rows.value = rows.value + listOf(activeRow.value)
+                        activeRow.value = emptyRow.toList()
                         if (activeRow.value == solution) {
                             isGameFinished.value = true
                         } else {
