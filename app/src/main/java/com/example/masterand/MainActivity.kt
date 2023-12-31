@@ -3,6 +3,11 @@ package com.example.masterand
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,16 +34,44 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     NavHost(navController = navController, startDestination = "ProfileScreen") {
-                        composable("ProfileScreen") {
+                        composable(
+                            route = "ProfileScreen",
+                            enterTransition = {
+                                slideInHorizontally(
+                                    animationSpec = tween(1000, easing = EaseIn),
+                                    initialOffsetX = { it }
+                                )
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(
+                                    animationSpec = tween(1000, easing = EaseOut),
+                                    targetOffsetX = { it }
+                                )
+                            }
+                        ) {
                             ProfileScreenInitial(
                                 onStartGame = {
                                     navController.navigate("MainGame")
                                 }
                             )
                         }
-                        composable("MainGame") {
+                        composable(
+                            route = "MainGame",
+                            enterTransition = {
+                                slideInHorizontally(
+                                    animationSpec = tween(1000, easing = EaseIn),
+                                    initialOffsetX = { it }
+                                )
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(
+                                    animationSpec = tween(1000, easing = EaseOut),
+                                    targetOffsetX = { it }
+                                )
+                            }
+                        ) {
                             MainGame(
-                                onScoreScreen = { score->
+                                onScoreScreen = { score ->
                                     navController.navigate("ResultScreen/$score")
                                 },
                                 onLogout = {
@@ -46,7 +79,21 @@ class MainActivity : ComponentActivity() {
                                 })
 
                         }
-                        composable("ResultScreen/{score}") {
+                        composable(
+                            route = "ResultScreen/{score}",
+                            enterTransition = {
+                                slideInHorizontally(
+                                    animationSpec = tween(1000, easing = EaseIn),
+                                    initialOffsetX = { it }
+                                )
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(
+                                    animationSpec = tween(1000, easing = EaseOut),
+                                    targetOffsetX = { it }
+                                )
+                            }
+                        ) {
                             ResultScreen(
                                 score = it.arguments?.getString("score") ?: "0",
                                 onRestartGame = {

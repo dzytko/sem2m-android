@@ -1,5 +1,10 @@
 package com.example.masterand.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -10,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,6 +32,10 @@ fun GameRow(
     assert(selectedColors.size == 4)
     assert(feedbackColors.size == 4)
 
+    val visibleState = remember { MutableTransitionState(false) }
+    val areAllColorsUnique = selectedColors.map { it }.toSet().size == selectedColors.size
+    visibleState.targetState = areAllColorsUnique && onCheckClick != null
+
     Row(
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -33,16 +43,22 @@ fun GameRow(
         for ((i, color) in selectedColors.withIndex()) {
             CircularButton(color = color, onClick = { onColorClick?.invoke(i) })
         }
-        IconButton(
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(50.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(),
-            onClick = onCheckClick ?: {},
-            enabled = selectedColors.map { it }.toSet().size == selectedColors.size && onCheckClick != null,
+        AnimatedVisibility(
+            visibleState = visibleState,
+            enter = scaleIn(animationSpec = tween(1000)),
+            exit = scaleOut(animationSpec = tween(1000))
         ) {
-            Icon(Icons.Outlined.Check, "Check")
-        }
+            IconButton(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(50.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(),
+                onClick = onCheckClick ?: {},
+                enabled = areAllColorsUnique && onCheckClick != null
+            ) {
+                Icon(Icons.Outlined.Check, "Check")
+            }
+     }
         FeedbackCircles(feedbackColors)
     }
 }
