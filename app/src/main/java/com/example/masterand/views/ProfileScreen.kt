@@ -90,9 +90,39 @@ fun ProfileImageWithPicker(profileImageUri: Uri?, selectImageOnClick: () -> Unit
     }
 }
 
+fun validateName(name: String): String {
+    return if (name.isEmpty()) {
+        "Name cannot be empty"
+    } else {
+        ""
+    }
+}
+
+fun validateEmail(email: String): String {
+    return if (email.isEmpty()) {
+        "Email cannot be empty"
+    } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        "Email is not valid"
+    } else {
+        ""
+    }
+}
+
+fun validateNumberOfColorsToGuess(numberOfColorsToGuess: String): String {
+    return if (numberOfColorsToGuess.isEmpty()) {
+        "Number of colors to guess cannot be empty"
+    } else if (numberOfColorsToGuess.toIntOrNull() == null) {
+        "Number of colors to guess must be a number"
+    } else if (numberOfColorsToGuess.toInt() !in 5..10) {
+        "Number of colors to guess must be between 5 and 10"
+    } else {
+        ""
+    }
+}
+
 @Composable
 fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "Title anim transition")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.1f,
@@ -108,7 +138,7 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
     val nameError = rememberSaveable { mutableStateOf("") }
 
     val email = rememberSaveable { mutableStateOf("") }
-    val emailError = rememberSaveable { mutableStateOf("Err") }
+    val emailError = rememberSaveable { mutableStateOf("") }
 
     val numberOfColorsToGuess = rememberSaveable { mutableStateOf("") }
     val numberOfColorsToGuessError = rememberSaveable { mutableStateOf("") }
@@ -122,6 +152,16 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
                 profileImageUri.value = selectedUri
             }
         })
+
+    fun validateAndStartGame() {
+        nameError.value = validateName(name.value)
+        emailError.value = validateEmail(email.value)
+        numberOfColorsToGuessError.value = validateNumberOfColorsToGuess(numberOfColorsToGuess.value)
+
+        if (nameError.value.isEmpty() && emailError.value.isEmpty() && numberOfColorsToGuessError.value.isEmpty()) {
+            onStartGame()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -168,9 +208,11 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
             error = numberOfColorsToGuessError,
             keyboardType = KeyboardType.Number
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             modifier = Modifier.fillMaxSize(),
-            onClick = onStartGame
+            onClick = { validateAndStartGame() },
         ) {
 
             Text(text = "Next")
