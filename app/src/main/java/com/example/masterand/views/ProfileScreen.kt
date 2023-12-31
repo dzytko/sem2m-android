@@ -83,7 +83,7 @@ fun ProfileImageWithPicker(profileImageUri: Uri?, selectImageOnClick: () -> Unit
 }
 
 @Composable
-fun ProfileScreenInitial() {
+fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
     val name = rememberSaveable { mutableStateOf("") }
     val nameError = rememberSaveable { mutableStateOf("") }
 
@@ -144,7 +144,7 @@ fun ProfileScreenInitial() {
         )
         Button(
             modifier = Modifier.fillMaxSize(),
-            onClick = { }
+            onClick = onStartGame
         ) {
 
             Text(text = "Next")

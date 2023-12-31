@@ -21,7 +21,7 @@ import com.example.masterand.utils.generateRandomColors
 import com.example.masterand.utils.getNextColorForIndex
 
 @Composable
-fun MainGame() {
+fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
     val emptyRow = List(4) { Color.White }
     val solution = remember { generateRandomColors() }
 
@@ -37,46 +37,54 @@ fun MainGame() {
         rows.value = listOf()
         activeRow.value = emptyRow.toList()
     }
-
     Column(
         horizontalAlignment = CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.SpaceBetween
+
     ) {
-        Text(
-            text = "Your score: ${score.intValue}",
-            fontSize = 50.sp,
-            modifier = Modifier.padding(4.dp)
-        )
-        for (row in rows.value) {
-            GameRow(
-                selectedColors = row,
-                feedbackColors = checkGuess(row, solution),
+        Column(
+            horizontalAlignment = CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Your score: ${score.intValue}",
+                fontSize = 50.sp,
+                modifier = Modifier.padding(4.dp)
             )
-        }
-        if (!isGameFinished.value) {
-            GameRow(
-                selectedColors = activeRow.value,
-                feedbackColors = emptyRow,
-                onColorClick = { index ->
-                    activeRow.value = activeRow.value
-                        .mapIndexed { i, color ->
-                            if (i == index) getNextColorForIndex(i, activeRow.value) else color
-                        }
-                        .toList()
-                },
-                onCheckClick = {
-                    rows.value = rows.value + listOf(activeRow.value)
-                    if (activeRow.value == solution) {
-                        isGameFinished.value = true
-                    } else {
-                        score.intValue++
-                    }
-                }
-            )
-        } else {
-            Button(onClick = { restartGame() }) {
-                Text(text = "Start overt")
+            for (row in rows.value) {
+                GameRow(
+                    selectedColors = row,
+                    feedbackColors = checkGuess(row, solution),
+                )
             }
+            if (!isGameFinished.value) {
+                GameRow(
+                    selectedColors = activeRow.value,
+                    feedbackColors = emptyRow,
+                    onColorClick = { index ->
+                        activeRow.value = activeRow.value
+                            .mapIndexed { i, color ->
+                                if (i == index) getNextColorForIndex(i, activeRow.value) else color
+                            }
+                            .toList()
+                    },
+                    onCheckClick = {
+                        rows.value = rows.value + listOf(activeRow.value)
+                        if (activeRow.value == solution) {
+                            isGameFinished.value = true
+                        } else {
+                            score.intValue++
+                        }
+                    }
+                )
+            } else {
+                Button(onClick = {onScoreScreen(score.intValue.toString())}) {
+                    Text(text = "High score table")
+                }
+            }
+        }
+        Button(onClick = onLogout) {
+            Text(text = "Logout")
         }
     }
 }
