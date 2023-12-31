@@ -9,8 +9,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.masterand.views.ProfileScreenInitial
 import com.example.masterand.ui.theme.MasterAndTheme
+import com.example.masterand.views.ProfileScreenInitial
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
