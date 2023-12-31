@@ -37,13 +37,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.masterand.R
 
-
-@Composable
-fun ProfileScreen() {
-
-}
-
-
 @Composable
 fun OutlinedTextFieldWithError(
     label: String,
