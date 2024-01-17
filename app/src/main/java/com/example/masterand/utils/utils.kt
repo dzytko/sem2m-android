@@ -3,21 +3,24 @@ package com.example.masterand.utils
 import androidx.compose.ui.graphics.Color
 
 val emptyRow = List(4) { Color.White }
-enum class AvailableColors(val value: Color) {
-    Red(Color.Red),
-    Green(Color.Green),
-    Blue(Color.Blue),
-    Yellow(Color.Yellow),
-    Cyan(Color.Cyan),
-    Magenta(Color.Magenta),
-    White(Color.White),
-    Black(Color.Black),
-}
+val allAvailableColors = listOf(
+    Color.White,
+    Color.Red,
+    Color.Green,
+    Color.Blue,
+    Color.Yellow,
+    Color.Magenta,
+    Color.Cyan,
+    Color.Gray,
+    Color.Black,
+    Color.DarkGray
+)
+
+var currentColorSet = allAvailableColors
 
 fun nextColor(color: Color): Color {
-    val allColors = AvailableColors.entries
-    val index = allColors.indexOfFirst { it.value == color }
-    return allColors[(index + 1) % allColors.size].value
+    val index = currentColorSet.indexOfFirst { it == color }
+    return currentColorSet[(index + 1) % currentColorSet.size]
 }
 
 fun getNextColorForIndex(index: Int, selectedColors: List<Color>): Color {
@@ -42,6 +45,5 @@ fun checkGuess(guess: List<Color>, solution: List<Color>): List<Color> {
 }
 
 fun generateRandomColors(): List<Color> {
-    // get random colors without duplicates
-    return AvailableColors.entries.shuffled().take(4).map { it.value }
+    return currentColorSet.shuffled().take(4)
 }
