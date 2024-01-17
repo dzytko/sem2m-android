@@ -10,6 +10,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -30,16 +31,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.masterand.utils.emptyRow
 
 @Composable
 fun GameRow(
     selectedColors: List<Color>,
-    feedbackColors: List<Color>,
+    feedbackColors: List<Color>?,
     onColorClick: ((Int) -> Unit)? = null,
     onCheckClick: (() -> Unit)? = null
 ) {
     assert(selectedColors.size == 4)
-    assert(feedbackColors.size == 4)
 
     val colorAnimationSpec = repeatable<Color>(
         iterations = 3,
@@ -70,7 +71,7 @@ fun GameRow(
 
     val visibleState = remember { MutableTransitionState(false) }
     val areAllColorsUnique = selectedColors.map { it }.toSet().size == selectedColors.size
-    visibleState.targetState = areAllColorsUnique && onCheckClick != null
+    visibleState.targetState = areAllColorsUnique && feedbackColors == null
 
     var rowVisible by remember { mutableStateOf(false) }
     LaunchedEffect(selectedColors) {
@@ -83,25 +84,29 @@ fun GameRow(
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             for ((i, color) in listOf(color0, color1, color2, color3).withIndex()) {
-                CircularButton(color = color, onClick = { onColorClick?.invoke(i) })
+                CircularButton(color = color, onClick = { if (feedbackColors == null) onColorClick?.invoke(i) })
             }
-            AnimatedVisibility(
-                visibleState = visibleState,
-                enter = scaleIn(animationSpec = tween(1000)),
-                exit = scaleOut(animationSpec = tween(1000))
-            ) {
-                IconButton(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(50.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(),
-                    onClick = onCheckClick ?: {},
-                    enabled = areAllColorsUnique && onCheckClick != null
+            if (!visibleState.isIdle || visibleState.currentState) {
+                AnimatedVisibility(
+                    visibleState = visibleState,
+                    enter = scaleIn(animationSpec = tween(1000)),
+                    exit = scaleOut(animationSpec = tween(1000))
                 ) {
-                    Icon(Icons.Outlined.Check, "Check")
+                    IconButton(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(50.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(),
+                        onClick = onCheckClick ?: {},
+                        enabled = areAllColorsUnique && onCheckClick != null
+                    ) {
+                        Icon(Icons.Outlined.Check, "Check")
+                    }
                 }
+            } else {
+                Box(modifier = Modifier.size(50.dp))
             }
-            FeedbackCircles(feedbackColors)
+            FeedbackCircles(feedbackColors?: emptyRow)
         }
     }
 }

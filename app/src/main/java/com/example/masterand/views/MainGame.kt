@@ -17,25 +17,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.masterand.components.GameRow
 import com.example.masterand.utils.checkGuess
+import com.example.masterand.utils.emptyRow
 import com.example.masterand.utils.generateRandomColors
 import com.example.masterand.utils.getNextColorForIndex
 
 @Composable
 fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
-    val emptyRow = List(4) { Color.White }
     val solution = remember { generateRandomColors() }
 
     val score = remember { mutableIntStateOf(1) }
     val isGameFinished = remember { mutableStateOf(false) }
 
-    val rows = remember { mutableStateOf(listOf<List<Color>>()) }
-    val activeRow = remember { mutableStateOf(emptyRow.toList()) }
+    val rows = remember { mutableStateOf(listOf(emptyRow)) }
+    val feedbacks = remember { mutableStateOf(listOf<List<Color>>()) }
 
     fun restartGame() {
         score.intValue = 1
         isGameFinished.value = false
         rows.value = listOf()
-        activeRow.value = emptyRow.toList()
+
     }
     Column(
         horizontalAlignment = CenterHorizontally,
@@ -51,35 +51,33 @@ fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
                 fontSize = 50.sp,
                 modifier = Modifier.padding(4.dp)
             )
-            GameRow(selectedColors = solution, feedbackColors = emptyRow)
-            for (row in rows.value) {
+            // debug row with solution
+//            GameRow(selectedColors = solution, feedbackColors = emptyRow)
+            for (rowIndex in rows.value.indices) {
+                val row = rows.value[rowIndex]
                 GameRow(
                     selectedColors = row,
-                    feedbackColors = checkGuess(row, solution),
-                )
-            }
-            if (!isGameFinished.value) {
-                GameRow(
-                    selectedColors = activeRow.value,
-                    feedbackColors = emptyRow,
+                    feedbackColors = feedbacks.value.getOrNull(rowIndex),
                     onColorClick = { index ->
-                        activeRow.value = activeRow.value
-                            .mapIndexed { i, color ->
-                                if (i == index) getNextColorForIndex(i, activeRow.value) else color
-                            }
-                            .toList()
+                        val newColor = getNextColorForIndex(index, row)
+                        val newRow = row.toMutableList()
+                        newRow[index] = newColor
+                        rows.value = rows.value.toMutableList().apply {
+                            set(rowIndex, newRow.toList())
+                        }
                     },
                     onCheckClick = {
-                        rows.value = rows.value + listOf(activeRow.value)
-                        if (activeRow.value == solution) {
+                        feedbacks.value = feedbacks.value + listOf(checkGuess(rows.value.last(), solution))
+                        if (rows.value.last() == solution) {
                             isGameFinished.value = true
-                        } else {
-                            score.intValue++
-                            activeRow.value = emptyRow.toList()
+                            return@GameRow
                         }
+                        score.intValue += 1
+                        rows.value = rows.value + listOf(emptyRow.toList())
                     }
                 )
-            } else {
+            }
+            if (isGameFinished.value) {
                 Button(onClick = {onScoreScreen(score.intValue.toString())}) {
                     Text(text = "High score table")
                 }
