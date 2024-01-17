@@ -44,6 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.masterand.R
+import com.example.masterand.utils.allAvailableColors
+import com.example.masterand.utils.currentColorSet
 
 @Composable
 fun OutlinedTextFieldWithError(
@@ -159,6 +161,8 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
         numberOfColorsToGuessError.value = validateNumberOfColorsToGuess(numberOfColorsToGuess.value)
 
         if (nameError.value.isEmpty() && emailError.value.isEmpty() && numberOfColorsToGuessError.value.isEmpty()) {
+            // magic global variable
+            currentColorSet = allAvailableColors.take(numberOfColorsToGuess.value.toInt())
             onStartGame()
         }
     }
