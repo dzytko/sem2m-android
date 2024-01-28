@@ -16,7 +16,9 @@ val allAvailableColors = listOf(
     Color.DarkGray
 )
 
+// magic global variables
 var currentColorSet = allAvailableColors
+var loggedInPlayerId: Long? = null
 
 fun nextColor(color: Color): Color {
     val index = currentColorSet.indexOfFirst { it == color }

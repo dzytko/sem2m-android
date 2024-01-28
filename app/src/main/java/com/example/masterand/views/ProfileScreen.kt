@@ -32,8 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -42,10 +40,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.masterand.AppViewModelProvider
 import com.example.masterand.R
-import com.example.masterand.utils.allAvailableColors
-import com.example.masterand.utils.currentColorSet
+import com.example.masterand.view_models.ProfileViewModel
 
 @Composable
 fun OutlinedTextFieldWithError(
@@ -92,38 +91,11 @@ fun ProfileImageWithPicker(profileImageUri: Uri?, selectImageOnClick: () -> Unit
     }
 }
 
-fun validateName(name: String): String {
-    return if (name.isEmpty()) {
-        "Name cannot be empty"
-    } else {
-        ""
-    }
-}
-
-fun validateEmail(email: String): String {
-    return if (email.isEmpty()) {
-        "Email cannot be empty"
-    } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-        "Email is not valid"
-    } else {
-        ""
-    }
-}
-
-fun validateNumberOfColorsToGuess(numberOfColorsToGuess: String): String {
-    return if (numberOfColorsToGuess.isEmpty()) {
-        "Number of colors to guess cannot be empty"
-    } else if (numberOfColorsToGuess.toIntOrNull() == null) {
-        "Number of colors to guess must be a number"
-    } else if (numberOfColorsToGuess.toInt() !in 5..10) {
-        "Number of colors to guess must be between 5 and 10"
-    } else {
-        ""
-    }
-}
-
 @Composable
-fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
+fun ProfileScreenInitial(
+    onStartGame: () -> Unit = {},
+    viewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "Title anim transition")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -135,37 +107,13 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
         label = "Title animation"
     )
 
-
-    val name = rememberSaveable { mutableStateOf("") }
-    val nameError = rememberSaveable { mutableStateOf("") }
-
-    val email = rememberSaveable { mutableStateOf("") }
-    val emailError = rememberSaveable { mutableStateOf("") }
-
-    val numberOfColorsToGuess = rememberSaveable { mutableStateOf("") }
-    val numberOfColorsToGuessError = rememberSaveable { mutableStateOf("") }
-
-    val profileImageUri = rememberSaveable { mutableStateOf<Uri?>(null) }
-
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { selectedUri ->
             if (selectedUri != null) {
-                profileImageUri.value = selectedUri
+                viewModel.profileImageUri.value = selectedUri
             }
         })
-
-    fun validateAndStartGame() {
-        nameError.value = validateName(name.value)
-        emailError.value = validateEmail(email.value)
-        numberOfColorsToGuessError.value = validateNumberOfColorsToGuess(numberOfColorsToGuess.value)
-
-        if (nameError.value.isEmpty() && emailError.value.isEmpty() && numberOfColorsToGuessError.value.isEmpty()) {
-            // magic global variable
-            currentColorSet = allAvailableColors.take(numberOfColorsToGuess.value.toInt())
-            onStartGame()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -188,7 +136,7 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
         )
 
         ProfileImageWithPicker(
-            profileImageUri = profileImageUri.value,
+            profileImageUri = viewModel.profileImageUri.value,
             selectImageOnClick = {
                 imagePicker.launch(
                     PickVisualMediaRequest(
@@ -199,24 +147,24 @@ fun ProfileScreenInitial(onStartGame: () -> Unit = {}) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextFieldWithError(label = "Name", value = name, error = nameError)
+        OutlinedTextFieldWithError(label = "Name", value = viewModel.name, error = viewModel.nameError)
         OutlinedTextFieldWithError(
             label = "Email",
-            value = email,
-            error = emailError,
+            value = viewModel.email,
+            error = viewModel.emailError,
             keyboardType = KeyboardType.Email
         )
         OutlinedTextFieldWithError(
             label = "Number of colors to guess",
-            value = numberOfColorsToGuess,
-            error = numberOfColorsToGuessError,
+            value = viewModel.numberOfColorsToGuess,
+            error = viewModel.numberOfColorsToGuessError,
             keyboardType = KeyboardType.Number
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             modifier = Modifier.fillMaxSize(),
-            onClick = { validateAndStartGame() },
+            onClick = { viewModel.validateAndSaveAndStartGame(onStartGame) },
         ) {
 
             Text(text = "Next")

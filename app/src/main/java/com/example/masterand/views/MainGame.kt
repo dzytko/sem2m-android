@@ -6,37 +6,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.masterand.AppViewModelProvider
 import com.example.masterand.components.GameRow
 import com.example.masterand.utils.checkGuess
 import com.example.masterand.utils.emptyRow
-import com.example.masterand.utils.generateRandomColors
 import com.example.masterand.utils.getNextColorForIndex
+import com.example.masterand.view_models.MainGameViewModel
 
 @Composable
-fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
-    val solution = remember { generateRandomColors() }
-
-    val score = remember { mutableIntStateOf(1) }
-    val isGameFinished = remember { mutableStateOf(false) }
-
-    val rows = remember { mutableStateOf(listOf(emptyRow)) }
-    val feedbacks = remember { mutableStateOf(listOf<List<Color>>()) }
-
-    fun restartGame() {
-        score.intValue = 1
-        isGameFinished.value = false
-        rows.value = listOf()
-
-    }
+fun MainGame(
+    onScoreScreen: (String) -> Unit = {},
+    onLogout: () -> Unit = {},
+    viewModel: MainGameViewModel = viewModel(factory = AppViewModelProvider.Factory)
+) {
     Column(
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -47,38 +35,38 @@ fun MainGame(onScoreScreen: (String) -> Unit = {}, onLogout: () -> Unit = {}) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Your score: ${score.intValue}",
+                text = "Your score: ${viewModel.score.intValue}",
                 fontSize = 50.sp,
                 modifier = Modifier.padding(4.dp)
             )
             // debug row with solution
-//            GameRow(selectedColors = solution, feedbackColors = emptyRow)
-            for (rowIndex in rows.value.indices) {
-                val row = rows.value[rowIndex]
+//            GameRow(selectedColors = viewModel.solution, feedbackColors = emptyRow)
+            for (rowIndex in viewModel.rows.value.indices) {
+                val row = viewModel.rows.value[rowIndex]
                 GameRow(
                     selectedColors = row,
-                    feedbackColors = feedbacks.value.getOrNull(rowIndex),
+                    feedbackColors = viewModel.feedbacks.value.getOrNull(rowIndex),
                     onColorClick = { index ->
                         val newColor = getNextColorForIndex(index, row)
                         val newRow = row.toMutableList()
                         newRow[index] = newColor
-                        rows.value = rows.value.toMutableList().apply {
+                        viewModel.rows.value =viewModel. rows.value.toMutableList().apply {
                             set(rowIndex, newRow.toList())
                         }
                     },
                     onCheckClick = {
-                        feedbacks.value = feedbacks.value + listOf(checkGuess(rows.value.last(), solution))
-                        if (rows.value.last() == solution) {
-                            isGameFinished.value = true
+                        viewModel.feedbacks.value = viewModel.feedbacks.value + listOf(checkGuess(viewModel.rows.value.last(), viewModel.solution))
+                        if (viewModel.rows.value.last() == viewModel.solution) {
+                            viewModel.isGameFinished.value = true
                             return@GameRow
                         }
-                        score.intValue += 1
-                        rows.value = rows.value + listOf(emptyRow.toList())
+                        viewModel.score.intValue += 1
+                        viewModel.rows.value = viewModel.rows.value + listOf(emptyRow.toList())
                     }
                 )
             }
-            if (isGameFinished.value) {
-                Button(onClick = {onScoreScreen(score.intValue.toString())}) {
+            if (viewModel.isGameFinished.value) {
+                Button(onClick = {viewModel.navigateToScoreScreen(onScoreScreen)}) {
                     Text(text = "High score table")
                 }
             }
